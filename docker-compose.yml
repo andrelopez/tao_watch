@@ -1,0 +1,5 @@
+version: '3.8'
+
+# Import the docker-compose.yml from the docker directory
+include:
+  - ./docker/docker-compose.yml 
