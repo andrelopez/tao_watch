@@ -39,7 +39,7 @@ tao_watch/
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.11+
 - Docker and Docker Compose
 - Git
 
@@ -47,7 +47,7 @@ tao_watch/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/tao_watch.git
+   git clone https://github.com/andrelopez/tao_watch.git
    cd tao_watch
    ```
 
@@ -72,19 +72,63 @@ tao_watch/
 
 1. Build and start all services:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 
-2. Access the API documentation:
+2. Or run in detached mode:
+   ```bash
+   docker compose up -d
+   ```
+
+3. View logs:
+   ```bash
+   docker compose logs -f
+   ```
+
+4. Access the API documentation:
    ```
    http://localhost:8000/docs
    ```
 
+5. Stop services:
+   ```bash
+   docker compose down
+   ```
+
+6. Clean up all containers, including orphaned ones:
+   ```bash
+   docker compose down --remove-orphans
+   ```
+
 ## Testing
 
-Run the test suite with:
+### Running Tests with Docker (Recommended)
+
+This is the most reliable way to run tests as it ensures a consistent environment:
 
 ```bash
+# Build and run tests
+docker compose build api && docker compose run api pytest
+```
+
+For verbose output:
+
+```bash
+docker compose run api pytest -sv
+```
+
+To run specific tests:
+
+```bash
+docker compose run api pytest tests/api/test_health.py -v
+```
+
+### Running Tests Locally
+
+If you prefer to run tests outside of Docker (requires Redis and PostgreSQL running locally):
+
+```bash
+# Activate virtual environment first
 pytest
 ```
 
