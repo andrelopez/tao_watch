@@ -1,5 +1,5 @@
 # FastAPI and related
-fastapi==0.104.0
+fastapi==0.110.1
 uvicorn[standard]==0.23.2
 pydantic==2.4.2
 pydantic-settings==2.0.3
@@ -25,6 +25,7 @@ loguru==0.7.2
 # External APIs
 requests==2.31.0
 httpx==0.25.0
+bittensor==9.2.0
 
 # Testing (needed for Docker tests)
 pytest==7.4.2
