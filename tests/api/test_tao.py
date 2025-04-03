@@ -71,8 +71,8 @@ def assert_valid_tao_response(data: Dict[str, Any]) -> None:
     """
     assert data["netuid"] == VALID_NETUID
     assert data["hotkey"] == VALID_HOTKEY
-    assert isinstance(data["dividend"], int)
-    assert data["dividend"] == MOCK_DIVIDEND
+    assert isinstance(data["dividend"], float)
+    assert data["dividend"] == float(MOCK_DIVIDEND)
     assert data["cached"] is False
     assert data["stake_tx_triggered"] is False
 

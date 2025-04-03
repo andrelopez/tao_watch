@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Optional, Union
-from pydantic import AnyHttpUrl, PostgresDsn, RedisDsn, field_validator
+from pydantic import AnyHttpUrl, PostgresDsn, RedisDsn, field_validator, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -81,7 +81,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     # Bittensor configuration - will be expanded in later PRs
-    BITTENSOR_NETWORK: str = "testnet"  # 'testnet' or 'mainnet'
+    BITTENSOR_NETWORK: str = Field(
+        default="test",
+        description="Network to connect to ('finney' or 'test')"
+    )
     BITTENSOR_WALLET_SEED: str = ""
     
     # Celery configuration
@@ -99,10 +102,20 @@ class Settings(BaseSettings):
     DATURA_API_KEY: str = ""
     CHUTES_API_KEY: str = ""
     
+    # Bittensor Network Settings
+    bittensor_finney_endpoint: str = Field(
+        default="wss://entrypoint-finney.opentensor.ai:443",
+        description="WebSocket endpoint for Bittensor Finney network"
+    )
+    bittensor_test_endpoint: str = Field(
+        default="wss://test.finney.opentensor.ai:9944",
+        description="WebSocket endpoint for Bittensor test network"
+    )
+    
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
         case_sensitive=True,
+        env_file=".env",
+        extra="allow"  # Allow extra fields from environment variables
     )
 
 
