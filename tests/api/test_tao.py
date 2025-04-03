@@ -1,5 +1,6 @@
 import pytest
 from typing import Any, Dict, Optional
+from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 from app.main import app
 from app.core.config import settings
@@ -9,7 +10,17 @@ client = TestClient(app)
 # Test data constants
 VALID_HOTKEY = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v"
 VALID_NETUID = 1
+MOCK_DIVIDEND = 1000000
 TAO_DIVIDENDS_ENDPOINT = f"{settings.API_V1_STR}/tao_dividends"
+
+@pytest.fixture
+def mock_bittensor_client():
+    """Mock the BittensorClient for testing."""
+    with patch("app.core.dependencies.BittensorClient") as mock:
+        mock_instance = AsyncMock()
+        mock_instance.get_tao_dividends.return_value = MOCK_DIVIDEND
+        mock.return_value = mock_instance
+        yield mock_instance
 
 def test_get_tao_dividends_unauthorized():
     """Test tao dividends endpoint without authentication."""
@@ -18,31 +29,37 @@ def test_get_tao_dividends_unauthorized():
     assert "WWW-Authenticate" in response.headers
 
 
-def test_get_tao_dividends_success():
+def test_get_tao_dividends_success(mock_bittensor_client):
     """Test tao dividends endpoint with valid authentication."""
     response = make_tao_dividends_request(token=settings.API_TOKEN)
     assert response.status_code == 200
     
     data = response.json()
     assert_valid_tao_response(data)
+    mock_bittensor_client.get_tao_dividends.assert_called_once_with(
+        VALID_NETUID,
+        VALID_HOTKEY
+    )
 
 
-def test_get_tao_dividends_invalid_netuid():
+def test_get_tao_dividends_invalid_netuid(mock_bittensor_client):
     """Test tao dividends endpoint with invalid netuid."""
     response = make_tao_dividends_request(
         netuid=-1,
         token=settings.API_TOKEN
     )
     assert response.status_code == 422
+    mock_bittensor_client.get_tao_dividends.assert_not_called()
 
 
-def test_get_tao_dividends_invalid_hotkey():
+def test_get_tao_dividends_invalid_hotkey(mock_bittensor_client):
     """Test tao dividends endpoint with invalid hotkey."""
     response = make_tao_dividends_request(
         hotkey="invalid",
         token=settings.API_TOKEN
     )
     assert response.status_code == 422
+    mock_bittensor_client.get_tao_dividends.assert_not_called()
 
 
 def assert_valid_tao_response(data: Dict[str, Any]) -> None:
@@ -54,9 +71,10 @@ def assert_valid_tao_response(data: Dict[str, Any]) -> None:
     """
     assert data["netuid"] == VALID_NETUID
     assert data["hotkey"] == VALID_HOTKEY
-    assert isinstance(data["dividend"], int)
-    assert data["cached"] is True
-    assert data["stake_tx_triggered"] is True 
+    assert isinstance(data["dividend"], float)
+    assert data["dividend"] == float(MOCK_DIVIDEND)
+    assert data["cached"] is False
+    assert data["stake_tx_triggered"] is False
 
 def make_tao_dividends_request(
     netuid: int = VALID_NETUID,

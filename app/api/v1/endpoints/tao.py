@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, Query
 from app.core.security import verify_token
 from app.api.v1.schemas.tao import TaoDividendsResponse
+from app.services.tao_dividends import TaoDividendsService
+from app.core.dependencies import get_tao_dividends_service
 
 router = APIRouter()
 
@@ -9,21 +11,15 @@ router = APIRouter()
 async def get_tao_dividends(
     netuid: int = Query(..., description="The subnet ID", ge=0),
     hotkey: str = Query(..., description="The hotkey (account ID or public key)", min_length=48, max_length=64),
-    token: str = Depends(verify_token)
+    token: str = Depends(verify_token),
+    service: TaoDividendsService = Depends(get_tao_dividends_service)
 ) -> TaoDividendsResponse:
     """
     Get Tao dividends for a given subnet and hotkey.
     
-    This endpoint returns static data for now. In the future, it will:
-    - Query the Bittensor blockchain
-    - Cache results in Redis
-    - Trigger background stake operations
+    This endpoint:
+    - Queries the Bittensor blockchain for dividend data
+    - Will support caching in future updates
+    - Will trigger background stake operations in future updates
     """
-    # Static response for now
-    return TaoDividendsResponse(
-        netuid=netuid,
-        hotkey=hotkey,
-        dividend=123456789,
-        cached=True,
-        stake_tx_triggered=True
-    ) 
+    return await service.get_dividends(netuid=netuid, hotkey=hotkey) 
