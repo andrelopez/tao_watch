@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     
     # API configuration
     API_V1_STR: str = "/api/v1"
+    API_TOKEN: str = "test-api-token"
     
     # CORS configuration
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []

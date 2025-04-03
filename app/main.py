@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.logging import configure_logging
+from app.api.v1.endpoints import tao
 
 
 @asynccontextmanager
@@ -45,7 +46,7 @@ def create_application() -> FastAPI:
         )
     
     # Include API routers
-    # Will be added in subsequent PRs
+    application.include_router(tao.router, prefix=settings.API_V1_STR, tags=["tao"])
     
     return application
 
