@@ -1,16 +1,29 @@
 import asyncio
 import websockets
 from loguru import logger
+from app.core.config import settings
+import pytest
 
-async def test_websocket_connection(url: str) -> bool:
+@pytest.mark.asyncio
+@pytest.mark.parametrize("url", [
+    settings.bittensor_finney_endpoint,
+    settings.bittensor_test_endpoint
+])
+async def test_websocket_connection(url: str) -> None:
     """Test if we can connect to a WebSocket endpoint."""
     try:
         async with websockets.connect(url) as websocket:
             logger.info(f"Successfully connected to {url}")
-            return True
-    except Exception as e:
+            # Send a ping and wait for pong to verify connection
+            pong_waiter = await websocket.ping()
+            await pong_waiter
+            logger.info(f"Received pong from {url}")
+    except (websockets.exceptions.WebSocketException, ConnectionRefusedError) as e:
         logger.error(f"Failed to connect to {url}: {e}")
-        return False
+        pytest.skip(f"Skipping test for {url} - endpoint not available: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error connecting to {url}: {e}")
+        pytest.fail(f"Unexpected error connecting to {url}: {e}")
 
 async def main():
     """Test both Bittensor network endpoints."""

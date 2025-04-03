@@ -77,24 +77,20 @@ async def test_get_tao_dividends(client):
         mock_substrate.query_map = MagicMock()
         
         # Create a mock query result that matches the expected format
-        mock_key = MagicMock()
+        mock_key = MOCK_HOTKEY  # Use the SS58 address directly
         mock_value = MagicMock()
         mock_value.value = 1000
         
-        # Mock decode_account_id to return our test hotkey
-        with patch("app.services.bittensor_client.decode_account_id") as mock_decode:
-            mock_decode.return_value = MOCK_HOTKEY
-            mock_substrate.query_map.return_value = [(mock_key, mock_value)]
-            
-            result = await c.get_tao_dividends(MOCK_NETUID, MOCK_HOTKEY)
-            assert result == 1000
-            
-            mock_substrate.query_map.assert_called_once_with(
-                module="SubtensorModule",
-                storage_function="TaoDividendsPerSubnet",
-                params=[MOCK_NETUID]
-            )
-            mock_decode.assert_called_once_with(mock_key)
+        mock_substrate.query_map.return_value = [(mock_key, mock_value)]
+        
+        result = await c.get_tao_dividends(MOCK_NETUID, MOCK_HOTKEY)
+        assert result == 1000.0  # Note: now returning float
+        
+        mock_substrate.query_map.assert_called_once_with(
+            module="SubtensorModule",
+            storage_function="TaoDividendsPerSubnet",
+            params=[MOCK_NETUID]
+        )
         break
 
 
@@ -128,25 +124,21 @@ async def test_get_tao_dividends_with_string_netuid(client):
         mock_substrate.query_map = MagicMock()
         
         # Create a mock query result
-        mock_key = MagicMock()
+        mock_key = MOCK_HOTKEY  # Use the SS58 address directly
         mock_value = MagicMock()
         mock_value.value = "1000"  # String value from substrate
         
-        # Mock decode_account_id to return our test hotkey
-        with patch("app.services.bittensor_client.decode_account_id") as mock_decode:
-            mock_decode.return_value = MOCK_HOTKEY
-            mock_substrate.query_map.return_value = [(mock_key, mock_value)]
-            
-            # Test with string netuid
-            result = await c.get_tao_dividends("1", MOCK_HOTKEY)
-            assert result == 1000.0
-            
-            mock_substrate.query_map.assert_called_once_with(
-                module="SubtensorModule",
-                storage_function="TaoDividendsPerSubnet",
-                params=[1]  # Should be converted to int
-            )
-            mock_decode.assert_called_once_with(mock_key)
+        mock_substrate.query_map.return_value = [(mock_key, mock_value)]
+        
+        # Test with string netuid
+        result = await c.get_tao_dividends("1", MOCK_HOTKEY)
+        assert result == 1000.0
+        
+        mock_substrate.query_map.assert_called_once_with(
+            module="SubtensorModule",
+            storage_function="TaoDividendsPerSubnet",
+            params=[1]  # Should be converted to int
+        )
         break
 
 
@@ -156,4 +148,25 @@ async def test_get_tao_dividends_with_invalid_netuid(client):
     async for c in client:
         with pytest.raises(ValueError, match="Invalid netuid value: invalid. Must be convertible to integer."):
             await c.get_tao_dividends("invalid", MOCK_HOTKEY)
+        break
+
+
+@pytest.mark.asyncio
+async def test_get_tao_dividends_not_found(client):
+    """Test getting Tao dividends when the hotkey is not found."""
+    async for c in client:
+        mock_substrate = c._substrate
+        mock_substrate.query_map = MagicMock()
+        
+        # Return empty result
+        mock_substrate.query_map.return_value = []
+        
+        result = await c.get_tao_dividends(MOCK_NETUID, MOCK_HOTKEY)
+        assert result == 0.0  # Should return 0 when not found
+        
+        mock_substrate.query_map.assert_called_once_with(
+            module="SubtensorModule",
+            storage_function="TaoDividendsPerSubnet",
+            params=[MOCK_NETUID]
+        )
         break 
