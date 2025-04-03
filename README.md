@@ -11,6 +11,19 @@ Tao Watch is a FastAPI-based service that:
 - Leverages Celery for background task processing
 - Optionally analyzes Twitter sentiment to make automated staking decisions
 
+## System Design
+
+Below is the high-level system architecture of Tao Watch:
+
+![System Design](docs/images/system-design.png)
+
+Key components:
+- **FastAPI Service**: Main API service handling authenticated requests
+- **Redis Cache**: In-memory cache for frequently accessed blockchain data
+- **PostgreSQL**: Persistent storage for historical data and analytics
+- **Celery Workers**: Background task processing for stake operations
+- **Bittensor Client**: Interface with the Bittensor blockchain
+
 ## Features
 
 - **Blockchain Data Endpoint**: Query Tao dividends with optional caching
